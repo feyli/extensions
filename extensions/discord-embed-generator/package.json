@@ -3,7 +3,7 @@
   "name": "discord-embed-generator",
   "title": "Discord Embed Generator",
   "description": "Generates a link that'll show the desired embed when sent on Discord",
-  "icon": "command-icon.png",
+  "icon": "icon.png",
   "author": "feyli",
   "categories": [
     "Web",
@@ -13,14 +13,71 @@
   "license": "MIT",
   "commands": [
     {
-      "name": "generate-discord-embed",
+      "name": "generate",
       "title": "Generate Discord Embed",
       "description": "Generate a Discord Embed based on the details you provided in the form",
       "mode": "view"
+    },
+    {
+      "name": "retrieve-from-url",
+      "title": "Retrieve From URL",
+      "description": "Retrieve the embed details from a Discord Embed link in the clipboard",
+      "mode": "no-view"
+    },
+    {
+      "name": "history",
+      "title": "Embed History",
+      "description": "Show history of last 30 embeds you created",
+      "mode": "view"
+    },
+    {
+      "name": "debug",
+      "title": "Debug",
+      "description": "Debug the extension",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "baseURL",
+      "title": "Embed URL",
+      "description": "The domain used to generate the embed",
+      "type": "dropdown",
+      "default": "https://embed.rauf.wtf/",
+      "data": [
+        {
+          "title": "https://embed.rauf.workers.dev/",
+          "value": "https://embed.rauf.workers.dev/"
+        },
+        {
+          "title": "https://embed.rauf.wtf/",
+          "value": "https://embed.rauf.wtf/"
+        }
+      ],
+      "required": true
+    },
+    {
+      "name": "defaultAction",
+      "title": "Default Action",
+      "description": "Whether to copy the embed link to the clipboard or to paste it in the frontmost app",
+      "type": "dropdown",
+      "default": "copy",
+      "data": [
+        {
+          "title": "Copy to Clipboard",
+          "value": "copy"
+        },
+        {
+          "title": "Paste in Frontmost App",
+          "value": "paste"
+        }
+      ],
+      "required": true
     }
   ],
   "dependencies": {
-    "@raycast/api": "^1.48.8"
+    "@raycast/api": "^1.48.8",
+    "node-fetch": "^3.3.1"
   },
   "devDependencies": {
     "@raycast/eslint-config": "1.0.5",
