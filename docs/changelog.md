@@ -1,5 +1,61 @@
 # Changelog
 
+## 1.89.0 - 2025-01-15
+
+### 💎 Improvements
+
+- **Cache**: Clearing the cache will now delete all the files in the cache folder instead of the entire folder.
+
+## 1.88.0 - 2024-12-16
+
+### 🐞 Fixes
+
+- **Markdown**: Fixed a crash when trying to print invalid surrogate code points
+- **Types**: Fixed an issue when generating the TypeScript definition for the preferences when one of their descriptions contained `*/`
+
+## 1.87.0 - 2024-12-04
+
+### ✨ New
+
+- **Docs**: You can now find a few txt files containing all the docs that you can feed to LLMs:
+  - [https://raw.githubusercontent.com/raycast/extensions/refs/heads/gh-pages/llms-full.txt](https://raw.githubusercontent.com/raycast/extensions/refs/heads/gh-pages/llms-full.txt) → All the docs
+  - [https://raw.githubusercontent.com/raycast/extensions/refs/heads/gh-pages/llms-api.txt](https://raw.githubusercontent.com/raycast/extensions/refs/heads/gh-pages/llms-api.txt) → The API docs
+  - [https://raw.githubusercontent.com/raycast/extensions/refs/heads/gh-pages/llms-utils.txt](https://raw.githubusercontent.com/raycast/extensions/refs/heads/gh-pages/llms-utils.txt) → The utils docs
+
+### 🐞 Fixes
+
+- **CLI**: Fix a couple of issues when trying to publish an extension or pull contributions
+
+## 1.86.0 - 2024-11-20
+
+### 💎 Improvements
+
+- **CLI**: The CLI that comes with `@raycast/api` does not use a platform/architecture-specific binary anymore. This should fix some issues that people encountered when trying to install the API.
+
+## 1.84.0 - 2024-10-09
+
+### 💎 Improvements
+
+- When running a no-view command with arguments, only clear the argument inputs instead of clearing the entire search bar (which brings the behaviour in line with other no-view commands)
+
+### 🐞 Fixes
+
+- Fixed a regression where `selectedItemId` wouldn’t be respected
+- Fixed a typo in the extension template’s build script
+
+## 1.81.0 - 2024-08-13
+
+### ✨ New
+
+- **Detail:** You can now render LaTeX in the Detail views. We support the following delimiters:
+  - Inline math: `\(...\)` and `\begin{math}...\end{math}`
+  - Display math: `\[...\]`, `$$...$$` and `\begin{equation}...\end{equation}`
+
+### 💎 Improvements
+
+- You can now pick a different command template for each command that you add in the `Create Extension` command’s form.
+- Added a new `Add Command` action for local extensions in the `Manage Extensions` command.
+
 ## 1.80.0 - 2024-07-31
 
 ### ✨ New
@@ -219,7 +275,7 @@
 
 ![](.gitbook/assets/extension-issues.webp)
 
-The new Extension Issues Dashboard is designed to help you quickly troubleshoot and resolve issues in any of your extensions by providing real-time visibility into errors encountered by users. You can access it at https://www.raycast.com/extension-issues, or by using the new `View Issues` action.
+The new Extension Issues Dashboard is designed to help you quickly troubleshoot and resolve issues in any of your extensions by providing real-time visibility into errors encountered by users. You can access it at <https://www.raycast.com/extension-issues>, or by using the new `View Issues` action.
 
 ### ✨ New
 

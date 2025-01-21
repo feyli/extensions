@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createWriteStream } from "node:fs";
 import { access, constants, copyFile, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pipeline as streamPipeline } from "node:stream/promises";
 import {
+  AI,
   Cache,
   Clipboard,
   Toast,
@@ -15,12 +16,25 @@ import {
   showHUD,
   showToast,
 } from "@raycast/api";
+import { useAI } from "@raycast/utils";
 import { execa } from "execa";
+import { Searcher } from "fast-fuzzy";
 import got, { Progress } from "got";
-import { titleToSlug } from "simple-icons/sdk";
-import { JsDelivrNpmResponse, IconData, IconJson, LaunchContext } from "./types.js";
+import { getIconSlug } from "simple-icons/sdk";
+import { JsDelivrNpmResponse, IconData, LaunchContext } from "./types.js";
 
 const cache = new Cache();
+
+export const fontUnicodeStart = 0xea01;
+
+export const {
+  defaultDetailAction = "OpenWith",
+  defaultLoadSvgAction = "WithBrandColor",
+  displaySimpleIconsFontFeatures,
+  enableAiSearch,
+} = getPreferenceValues<ExtensionPreferences>();
+
+export const hasAccessToAi = environment.canAccess(AI);
 
 export const buildDeeplinkParameters = (launchContext?: LaunchContext) => {
   if (!launchContext) return "";
@@ -75,9 +89,13 @@ export const cacheAssetPack = async (version: string) => {
 };
 
 export const loadCachedJson = async (version: string) => {
+  const [major] = version.split(".");
+  const isNewFormat = Number(major) >= 14;
   const jsonPath = join(environment.assetsPath, "pack", `simple-icons-${version}`, "_data", "simple-icons.json");
   const jsonFile = await readFile(jsonPath, "utf8");
-  return JSON.parse(jsonFile) as IconJson;
+  const json = JSON.parse(jsonFile);
+  const icons = isNewFormat ? (json as IconData[]) : (json.icons as IconData[]);
+  return icons.map((icon, i) => ({ ...icon, code: fontUnicodeStart + i }));
 };
 
 export const loadCachedVersion = () => {
@@ -119,7 +137,6 @@ export const useVersion = ({ launchContext }: { launchContext?: LaunchContext })
 };
 
 export const loadSvg = async ({ version, icon, slug }: { version: string; icon: IconData; slug: string }) => {
-  const { defaultLoadSvgAction = "WithBrandColor" } = getPreferenceValues<ExtensionPreferences>();
   const svgPath = join(environment.assetsPath, "pack", `simple-icons-${version}`, "icons", `${slug}.svg`);
   let svg = await readFile(svgPath, "utf8");
   const withBrandColor = defaultLoadSvgAction === "WithBrandColor";
@@ -136,7 +153,7 @@ export const copySvg = async ({ version, icon }: { version: string; icon: IconDa
   const { svg } = await loadSvg({
     version,
     icon,
-    slug: icon.slug || titleToSlug(icon.title),
+    slug: getIconSlug(icon),
   });
   toast.style = Toast.Style.Success;
   Clipboard.copy(svg);
@@ -189,4 +206,50 @@ export const getAliases = (icon: IconData) => {
   const dup = icon.aliases?.dup?.map((d) => [d.title, ...Object.values(d.loc ?? {})]).flat() ?? [];
   const loc = Object.values(icon.aliases?.loc ?? {});
   return [...new Set([...aka, ...dup, ...loc])];
+};
+
+export const aiSearch = async (icons: IconData[], searchString: string) => {
+  if (!searchString) return icons;
+  const searchPrompt = [
+    `Here is the full icon data JSON for brand icons in array below:`,
+    JSON.stringify(icons),
+    `Please search with the search keyword "${searchString}" from the JSON. And return at least one icon data item in array.`,
+    "Reply with the plain JSON text only (up to 500 items, no markdown format), no addition text.",
+  ].join("\n");
+  return AI.ask(searchPrompt).catch(() => []);
+};
+
+export const getKeywords = (icon: IconData) =>
+  [
+    icon.title,
+    icon.slug,
+    icon.aliases?.aka,
+    icon.aliases?.dup?.map((duplicate) => duplicate.title),
+    Object.values(icon.aliases?.loc ?? {}),
+  ]
+    .flat()
+    .filter(Boolean) as string[];
+
+export const useSearch = ({ icons }: { icons: IconData[] }) => {
+  const [searchString, setSearchString] = useState("");
+  const $searchString = searchString.trim().toLowerCase();
+  const searcher = useMemo(() => new Searcher(icons, { keySelector: getKeywords }), [icons]);
+
+  const filteredIcons = $searchString
+    ? enableAiSearch && hasAccessToAi
+      ? icons.filter((icon) => getKeywords(icon).some((text) => text.toLowerCase().includes($searchString)))
+      : searcher.search($searchString)
+    : icons;
+
+  const searchPrompt = [
+    `Here is the full icon data JSON for brand icons in array below:`,
+    JSON.stringify(icons),
+    "The 'title' means the company or project names, 'source' means the icon resource URL or company website, 'hex' means the icon color in hex code.",
+    `Please search from the data with the search keyword "${$searchString}". And return at least one icon slug in the format below:`,
+    "(icon slugs only, split with comma, up to 500 items, no markdown format, don't change data structure, no addition text, no spaces, do not return non-exist slugs)",
+  ].join("\n");
+  const execute = enableAiSearch && Boolean(searchString) && hasAccessToAi && filteredIcons.length === 0;
+  const { data, isLoading: aiIsLoading } = useAI(searchPrompt, { execute, model: AI.Model["OpenAI_GPT4o-mini"] });
+  const searchResult = execute ? icons.filter((icon) => data.split(",").includes(icon.slug)) : filteredIcons;
+  return { aiIsLoading, searchResult, setSearchString };
 };

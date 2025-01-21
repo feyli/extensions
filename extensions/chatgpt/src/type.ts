@@ -35,7 +35,7 @@ export interface Model {
   created_at: string;
   name: string;
   prompt: string;
-  option: "gpt-3.5-turbo" | "gpt-3.5-turbo-0301" | "gpt-4" | "gpt-4-0314" | "gpt-4-32k" | "gpt-4-32k-0314" | string;
+  option: string;
   temperature: string;
   pinned: boolean;
   vision?: boolean;
@@ -63,11 +63,15 @@ export type HistoryHook = Hook<Chat>;
 
 export type SavedChatHook = Hook<SavedChat>;
 
-export type ConversationsHook = Hook<Conversation> & { update: PromiseFunctionWithOneArg<Conversation> };
+export type ConversationsHook = Hook<Conversation> & {
+  update: PromiseFunctionWithOneArg<Conversation>;
+  setConversations: PromiseFunctionWithOneArg<Conversation[]>;
+};
 
 export type QuestionHook = BaseHook<string> & { update: PromiseFunctionWithOneArg<string> };
 
 export type ModelHook = Hook<Model> & {
+  setModels: PromiseFunctionWithOneArg<Model[]>;
   update: PromiseFunctionWithOneArg<Model>;
   option: Model["option"][];
   isFetching: boolean;
