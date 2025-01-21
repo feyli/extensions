@@ -1,5 +1,13 @@
 # Pexels Changelog
 
+## [Refactor Code] - 2024-07-29
+
+- Refactor the code to simplify the logic and improve the performance
+
+## [Add New Command] - 2023-03-31
+
+- Add Search Videos command
+
 ## [Update Raycast API] - 2022-12-05
 
 - Update Raycast API version to 1.44.0

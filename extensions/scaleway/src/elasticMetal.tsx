@@ -1,3 +1,4 @@
-import { ElasticMetal } from './elasticMetal/ElasticMetal'
+import 'cross-fetch/polyfill'
+import { ElasticMetal } from './products/elasticMetal/ElasticMetal'
 
 export default () => <ElasticMetal />

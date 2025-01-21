@@ -1,12 +1,21 @@
-import { Action, ActionPanel, Clipboard, Color, Icon, List, useNavigation } from "@raycast/api";
+import { Action, ActionPanel, Color, Icon, List } from "@raycast/api";
 import { useEffect } from "react";
 import useStopwatches from "./hooks/useStopwatches";
-import RenameView from "./RenameView";
-import { formatTime, formatDateTime } from "./formatUtils";
+import { formatTime, formatDateTime } from "./backend/formatUtils";
+import { Stopwatch } from "./backend/types";
+import RenameAction from "./components/RenameAction";
 
 export default function Command() {
-  const { stopwatches, isLoading, refreshSWes, handleStartSW, handleStopSW } = useStopwatches();
-  const { push } = useNavigation();
+  const {
+    stopwatches,
+    isLoading,
+    refreshSWes,
+    handleRestartSW,
+    handleStartSW,
+    handleStopSW,
+    handlePauseSW,
+    handleUnpauseSW,
+  } = useStopwatches();
 
   useEffect(() => {
     refreshSWes();
@@ -15,29 +24,50 @@ export default function Command() {
     }, 1000);
   }, []);
 
+  const pausedTag = { tag: { value: "Paused", color: Color.Red } };
+  const unpausedTag = { tag: { value: "Running", color: Color.Green } };
+  const pausedIcon = { source: Icon.Clock, tintColor: Color.Red };
+  const unpausedIcon = { source: Icon.Clock, tintColor: Color.Green };
+
   return (
     <List isLoading={isLoading}>
       <List.Section
         title={stopwatches?.length !== 0 && stopwatches != null ? "Currently Running" : "No Stopwatches Running"}
       >
-        {stopwatches?.map((sw) => (
+        {stopwatches?.map((sw: Stopwatch) => (
           <List.Item
-            key={sw.originalFile}
-            icon={{ source: Icon.Clock, tintColor: Color.Red }}
+            key={sw.swID}
+            icon={sw.lastPaused == "----" ? unpausedIcon : pausedIcon}
             title={sw.name}
             subtitle={formatTime(sw.timeElapsed) + " elapsed"}
-            accessoryTitle={"Started at " + formatDateTime(sw.timeStarted)}
+            accessories={[
+              { text: "Started at " + formatDateTime(sw.timeStarted) },
+              sw.lastPaused == "----" ? unpausedTag : pausedTag,
+            ]}
             actions={
               <ActionPanel>
-                <Action title="Stop Stopwatch" onAction={() => handleStopSW(sw)} />
-                <Action
-                  title="Rename Stopwatch"
-                  onAction={() => push(<RenameView currentName={sw.name} originalFile={sw.originalFile} ctID={null} />)}
+                {sw.lastPaused == "----" ? (
+                  <Action title="Pause Stopwatch" icon={Icon.Pause} onAction={() => handlePauseSW(sw.swID)} />
+                ) : (
+                  <Action title="Unpause Stopwatch" icon={Icon.Play} onAction={() => handleUnpauseSW(sw.swID)} />
+                )}
+                <RenameAction renameLabel="Stopwatch" currentName={sw.name} originalFile={"stopwatch"} ctID={sw.swID} />
+                <Action.CopyToClipboard
+                  title="Copy Current Time"
+                  shortcut={{ modifiers: ["cmd"], key: "c" }}
+                  content={formatTime(sw.timeElapsed)}
                 />
                 <Action
-                  title="Copy Current Time"
-                  shortcut={{ modifiers: ["opt"], key: "c" }}
-                  onAction={() => Clipboard.copy(formatTime(sw.timeElapsed))}
+                  title="Restart Stopwatch"
+                  icon={Icon.ArrowCounterClockwise}
+                  shortcut={{ modifiers: ["cmd"], key: "r" }}
+                  onAction={() => handleRestartSW(sw)}
+                />
+                <Action
+                  title="Stop Stopwatch"
+                  icon={Icon.Stop}
+                  shortcut={{ modifiers: ["ctrl"], key: "x" }}
+                  onAction={() => handleStopSW(sw)}
                 />
               </ActionPanel>
             }
@@ -50,7 +80,7 @@ export default function Command() {
           subtitle={"Press Enter to start a stopwatch"}
           actions={
             <ActionPanel>
-              <Action title="Start Stopwatch" onAction={() => handleStartSW()} />
+              <Action title="Start Stopwatch" icon={Icon.Stopwatch} onAction={() => handleStartSW({})} />
             </ActionPanel>
           }
         />

@@ -2,14 +2,18 @@
   "$schema": "https://www.raycast.com/schemas/extension.json",
   "name": "lucide-icons",
   "title": "Lucide Icons Search",
-  "description": "View the Lucide icon set.",
+  "description": "Search the Lucide icon set",
   "icon": "command-icon.png",
-  "author": "basil",
+  "author": "Sn0wye",
   "categories": [
     "Design Tools",
     "Developer Tools"
   ],
   "license": "MIT",
+  "contributors": [
+    "lin",
+    "xilopaint"
+  ],
   "commands": [
     {
       "name": "index",
@@ -20,23 +24,21 @@
     }
   ],
   "dependencies": {
-    "@raycast/api": "^1.38.1",
-    "@raycast/utils": "^1.1.0"
+    "@raycast/api": "^1.82.5",
+    "@raycast/utils": "^1.17.0"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^5.0.0",
-    "@typescript-eslint/parser": "^5.0.0",
-    "eslint": "^7.32.0",
-    "eslint-config-prettier": "^8.3.0",
-    "lucide-static": "^0.84.0",
-    "prettier": "^2.5.1",
-    "typescript": "^4.4.3"
+    "@raycast/eslint-config": "^1.0.11",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.2"
   },
   "scripts": {
-    "prebuild": "node prebuild.js",
-    "build": "ray build -e dist",
+    "build": "ray build --skip-types -e dist -o dist",
     "dev": "ray develop",
     "fix-lint": "ray lint --fix",
-    "lint": "ray lint"
+    "lint": "ray lint",
+    "publish": "npx @raycast/api@latest publish"
   }
 }

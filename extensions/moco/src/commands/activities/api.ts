@@ -45,17 +45,17 @@ const activitySchema = z.array(
       firstname: z.string(),
       lastname: z.string(),
     }),
-    hourly_rate: z.number(),
+    hourly_rate: z.number().optional(),
     timer_started_at: z.nullable(z.string()),
     created_at: z.string(),
     updated_at: z.string(),
-  })
+  }),
 );
 
 export const fetchActivities = async (
   projectID: number | null,
   lookbackDays: number,
-  userID?: number
+  userID?: number,
 ): Promise<Activity[]> => {
   const today = new Date().toISOString().split("T")[0];
 
@@ -100,22 +100,21 @@ export const fetchActivities = async (
         timer_started_at: activity.timer_started_at as string,
         created_at: activity.created_at as string,
         updated_at: activity.updated_at as string,
-      })
+      }),
     )
     .sort((a, b) => (a.created_at > b.created_at || a.updated_at > b.updated_at ? -1 : 1));
 };
 
-export const startActivity = async (
-  values: any,
-  projectID: number | undefined,
-  taskID: number
-): Promise<boolean | void> => {
+export const startActivity = async (values: any): Promise<boolean | void> => {
   const verb = values.hours === "" ? "start" : "logg";
   const toast = await showToast({
     style: Toast.Style.Animated,
     title: `${verb.charAt(0).toUpperCase() + verb.slice(1)}ing activity...`,
   });
-
+  axios.interceptors.request.use((request) => {
+    console.log("Starting Request", JSON.stringify(request, null, 2));
+    return request;
+  });
   const result = await axios
     .post(
       `/activities`,
@@ -123,8 +122,8 @@ export const startActivity = async (
         date: values.date,
         description: values.description,
         hours: values.hours,
-        project_id: projectID,
-        task_id: taskID,
+        project_id: values.projectID,
+        task_id: values.taskID,
       },
       {
         headers: {
@@ -132,7 +131,7 @@ export const startActivity = async (
           "Content-Type": "application/json",
           Authorization: `Token token=${preferences.apikey}`,
         },
-      }
+      },
     )
     .then((response) => {
       if (response.status == 200) {
@@ -173,7 +172,7 @@ export const toggleActivity = async (activityID: number, startActivity: boolean)
           "Content-Type": "application/json",
           Authorization: `Token token=${preferences.apikey}`,
         },
-      }
+      },
     )
     .then((response) => {
       if (response.status == 200) {
@@ -218,7 +217,7 @@ export const editActivity = async (values: any, activityID: number): Promise<boo
           "Content-Type": "application/json",
           Authorization: `Token token=${preferences.apikey}`,
         },
-      }
+      },
     )
     .then((response) => {
       if (response.status == 200) {

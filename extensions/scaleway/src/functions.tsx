@@ -1,3 +1,4 @@
-import { ServerlessFunctions } from './functions/ServerlessFunction'
+import 'cross-fetch/polyfill'
+import { ServerlessFunctions } from './products/functions/ServerlessFunction'
 
 export default () => <ServerlessFunctions />

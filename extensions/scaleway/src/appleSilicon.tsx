@@ -1,3 +1,4 @@
-import { AppleSilicon } from './appleSilicon/AppleSilicon'
+import 'cross-fetch/polyfill'
+import { AppleSilicon } from './products/appleSilicon/AppleSilicon'
 
 export default () => <AppleSilicon />

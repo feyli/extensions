@@ -1,3 +1,4 @@
-import { LoadBalancer } from './loadBalancer/LB'
+import 'cross-fetch/polyfill'
+import { LoadBalancer } from './products/loadBalancer/LB'
 
 export default () => <LoadBalancer />

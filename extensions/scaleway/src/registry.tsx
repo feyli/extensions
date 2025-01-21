@@ -1,3 +1,4 @@
-import { Registry } from './registry/Registry'
+import 'cross-fetch/polyfill'
+import { Registry } from './products/registry/Registry'
 
 export default () => <Registry />

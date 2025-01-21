@@ -140,6 +140,10 @@ export function CopyProjectIDToClipboardAction(props: { project: Project }): JSX
   return <Action.CopyToClipboard title="Copy Project ID" content={props.project.id} />;
 }
 
+export function CopyProjectUrlToClipboardAction(props: { project: Project }): JSX.Element {
+  return <Action.CopyToClipboard title="Copy Project URL" content={props.project.web_url} />;
+}
+
 function CloneUrlList(props: { project: Project }): JSX.Element {
   return (
     <List navigationTitle="Copy Clone URL">
@@ -232,7 +236,7 @@ export function OpenProjectPipelinesPushAction(props: { project: Project }): JSX
   return (
     <Action.Push
       title="Pipelines"
-      shortcut={{ modifiers: ["cmd"], key: "p" }}
+      shortcut={{ modifiers: ["cmd", "shift"], key: "p" }}
       icon={{ source: GitLabIcons.ci, tintColor: Color.PrimaryText }}
       target={<PipelineList projectFullPath={props.project.fullPath} />}
     />
@@ -252,6 +256,16 @@ export function OpenProjectMilestonesPushAction(props: { project: Project }): JS
 
 function webUrl(project: Project, partial: string) {
   return getGitLabGQL().urlJoin(`${project.fullPath}/${partial}`);
+}
+
+export function OpenProjectWikiInBrowserAction(props: { project: Project }): JSX.Element {
+  return (
+    <GitLabOpenInBrowserAction
+      title="Wiki"
+      icon={{ source: GitLabIcons.wiki, tintColor: Color.PrimaryText }}
+      url={webUrl(props.project, "-/wikis")}
+    />
+  );
 }
 
 export function OpenProjectLabelsInBrowserAction(props: { project: Project }): JSX.Element {

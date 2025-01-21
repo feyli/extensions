@@ -1,3 +1,4 @@
-import { Kubernetes } from './k8s/Kubernetes'
+import 'cross-fetch/polyfill'
+import { Kubernetes } from './products/k8s/Kubernetes'
 
 export default () => <Kubernetes />

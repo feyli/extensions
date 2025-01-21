@@ -15,7 +15,8 @@ export default function Link(link: SchedulingLink) {
 
   return (
     <List.Item
-      title={link.name}
+      title={link.private_name ?? link.name}
+      keywords={[link.slug]}
       subtitle={SAVVYCAL_BASE_URL + "/" + link.scope.slug + "/" + link.slug}
       icon={savvycalIcon}
       accessories={[

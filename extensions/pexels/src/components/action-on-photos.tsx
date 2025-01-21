@@ -1,52 +1,50 @@
-import { Action, ActionPanel, getPreferenceValues, Icon, showToast, Toast } from "@raycast/api";
-import React from "react";
-import { Preferences } from "../types/preferences";
-import { buildImageName, deleteCache, downloadPhoto, setWallpaper } from "../utils/common-utils";
+import { Action, ActionPanel, Icon, showToast, Toast } from "@raycast/api";
+import { downloadSize } from "../types/preferences";
+import { buildImageName, deleteCache, downloadPhoto, setOnlineWallpaper } from "../utils/common-utils";
 import { PexelsPhoto } from "../types/types";
 import { ActionToPexels } from "./action-to-pexels";
 import { Photo } from "pexels";
 import { ActionOpenPreferences } from "./action-open-preferences";
 
-export function ActionOnPhotos(props: { pexelsPhoto: Photo }) {
-  const { pexelsPhoto } = props;
+export function ActionOnPhotos(props: { item: Photo }) {
+  const { item } = props;
   return (
     <ActionPanel>
       <Action
         icon={Icon.Download}
         title={"Download Photo"}
         onAction={async () => {
-          const { downloadSize } = getPreferenceValues<Preferences>();
           let url: string;
           switch (downloadSize) {
             case "tiny":
-              url = pexelsPhoto.src.tiny;
+              url = item.src.tiny;
               break;
             case "portrait":
-              url = pexelsPhoto.src.portrait;
+              url = item.src.portrait;
               break;
             case "landscape":
-              url = pexelsPhoto.src.landscape;
+              url = item.src.landscape;
               break;
             case "small":
-              url = pexelsPhoto.src.small;
+              url = item.src.small;
               break;
             case "medium":
-              url = pexelsPhoto.src.medium;
+              url = item.src.medium;
               break;
             case "large":
-              url = pexelsPhoto.src.large;
+              url = item.src.large;
               break;
             case "large2x":
-              url = pexelsPhoto.src.large2x;
+              url = item.src.large2x;
               break;
             case "original":
-              url = pexelsPhoto.src.original;
+              url = item.src.original;
               break;
             default:
-              url = pexelsPhoto.src.original;
+              url = item.src.original;
               break;
           }
-          const name = buildImageName(pexelsPhoto.src.original, downloadSize);
+          const name = buildImageName(item.src.original, downloadSize);
           await downloadPhoto(url, name);
         }}
       />
@@ -54,36 +52,53 @@ export function ActionOnPhotos(props: { pexelsPhoto: Photo }) {
         icon={Icon.Desktop}
         title={"Set Desktop Wallpaper"}
         onAction={() => {
-          setWallpaper(pexelsPhoto.src.original).then(() => "");
+          setOnlineWallpaper(item.photographer, item.src.original).then(() => "");
         }}
       />
-      <ActionPanel.Section>
+      <ActionPanel.Submenu
+        title={"Copy Info"}
+        icon={Icon.Clipboard}
+        shortcut={{ modifiers: ["shift", "cmd"], key: "enter" }}
+      >
         <Action.CopyToClipboard
           title={"Copy Photo Link"}
-          content={pexelsPhoto.url}
-          shortcut={{ modifiers: ["shift", "cmd"], key: "," }}
+          content={item.url}
+          shortcut={{ modifiers: ["shift", "cmd"], key: "1" }}
         />
         <Action.CopyToClipboard
           title={"Copy Photo Color"}
-          content={(pexelsPhoto as PexelsPhoto).avg_color}
-          shortcut={{ modifiers: ["shift", "cmd"], key: "." }}
+          content={(item as PexelsPhoto).avg_color}
+          shortcut={{ modifiers: ["shift", "cmd"], key: "2" }}
         />
         <Action.CopyToClipboard
           title={"Copy Photo Description"}
-          content={(pexelsPhoto as PexelsPhoto).alt}
-          shortcut={{ modifiers: ["ctrl", "cmd"], key: "." }}
+          content={(item as PexelsPhoto).alt}
+          shortcut={{ modifiers: ["shift", "cmd"], key: "3" }}
         />
+        <Action.CopyToClipboard
+          title={"Copy User Link"}
+          content={item.photographer_url}
+          shortcut={{ modifiers: ["shift", "cmd"], key: "4" }}
+        />
+        <Action.CopyToClipboard
+          title={"Copy User Name"}
+          content={item.photographer}
+          shortcut={{ modifiers: ["shift", "cmd"], key: "5" }}
+        />
+      </ActionPanel.Submenu>
+
+      <ActionPanel.Section>
         <ActionToPexels />
       </ActionPanel.Section>
 
       <ActionPanel.Section>
         <Action
-          icon={Icon.Globe}
+          icon={Icon.Trash}
           title={"Clear Cache"}
           shortcut={{ modifiers: ["shift", "ctrl"], key: "x" }}
           onAction={async () => {
             await showToast(Toast.Style.Success, "Clearing...");
-            await deleteCache();
+            deleteCache();
             await showToast(Toast.Style.Success, "Cache is cleared.");
           }}
         />

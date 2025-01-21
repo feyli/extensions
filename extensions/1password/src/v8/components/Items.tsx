@@ -1,36 +1,57 @@
-import { Action, ActionPanel, Color, Icon, List } from "@raycast/api";
+import { Color, Icon, List } from "@raycast/api";
 import { useCachedState } from "@raycast/utils";
 
-import { CopyToClipboard } from "./ActionCopyToClipboard";
 import { Categories, DEFAULT_CATEGORY } from "./Categories";
-import { Item, Url, User } from "../types";
-import { getCategoryIcon, ITEMS_CACHE_NAME, ACCOUNT_CACHE_NAME, useOp } from "../utils";
-import { Guide } from "./Guide";
-import resetCache from "../../reset-cache";
+import { Item } from "../types";
+import {
+  getCategoryIcon,
+  actionsForItem,
+  useAccount,
+  CommandLineMissingError,
+  ConnectionError,
+  ExtensionError,
+  usePasswords2,
+} from "../utils";
+import { Error as ErrorGuide } from "./Error";
+import { ItemActionPanel } from "./ItemActionPanel";
+import { useMemo, useState } from "react";
 
-export function Items() {
+export function Items({ flags }: { flags?: string[] }) {
   const [category, setCategory] = useCachedState<string>("selected_category", DEFAULT_CATEGORY);
+  const [passwords, setPasswords] = useState<Item[]>([]);
 
-  const {
-    data: account,
-    error: accountError,
-    isLoading: accountIsLoading,
-  } = useOp<User>(["whoami"], ACCOUNT_CACHE_NAME);
+  const { data: account, error: accountError, isLoading: accountIsLoading } = useAccount();
   const {
     data: items,
     error: itemsError,
     isLoading: itemsIsLoading,
-  } = useOp<Item[]>(["item", "list", "--long"], ITEMS_CACHE_NAME);
+  } = usePasswords2({ flags, account: account?.account_uuid ?? "", execute: !accountError && !accountIsLoading });
 
-  const categoryItems =
-    category === DEFAULT_CATEGORY
-      ? items
-      : items?.filter((item) => item.category === category.replaceAll(" ", "_").toUpperCase());
+  useMemo(() => {
+    if (!items) return;
+    if (category === DEFAULT_CATEGORY) return setPasswords(items);
+    setPasswords(items?.filter((item) => item.category === category.replaceAll(" ", "_").toUpperCase()));
+  }, [items, category]);
+
   const onCategoryChange = (newCategory: string) => {
     category !== newCategory && setCategory(newCategory);
   };
 
-  if (itemsError || accountError) return <Guide />;
+  if (itemsError instanceof CommandLineMissingError || accountError instanceof CommandLineMissingError)
+    return <ErrorGuide />;
+
+  if (itemsError instanceof ConnectionError || accountError instanceof ConnectionError) {
+    return (
+      <List>
+        <List.EmptyView
+          title={(itemsError as ExtensionError)?.title || (accountError as ExtensionError)?.title}
+          description={itemsError?.message || accountError?.message}
+          icon={Icon.WifiDisabled}
+        />
+      </List>
+    );
+  }
+
   return (
     <List
       searchBarAccessory={<Categories onCategoryChange={onCategoryChange} />}
@@ -41,11 +62,9 @@ export function Items() {
         icon="1password-noview.png"
         description="Any items you have added in 1Password app will be listed here."
       />
-      <List.Section title="Items" subtitle={`${categoryItems?.length}`}>
-        {categoryItems?.length &&
-          categoryItems
-            .sort((a, b) => a.title.localeCompare(b.title))
-            .map((item) => (
+      <List.Section title="Items" subtitle={`${passwords?.length}`}>
+        {passwords?.length
+          ? passwords.map((item) => (
               <List.Item
                 key={item.id}
                 id={item.id}
@@ -61,44 +80,11 @@ export function Items() {
                     : {},
                   { text: item.vault?.name },
                 ]}
-                actions={
-                  <ActionPanel>
-                    <Action.Open
-                      title="Open In 1Password"
-                      target={`onepassword://view-item/?a=${account?.account_uuid}&v=${item.vault.id}&i=${item.id}`}
-                      application="com.1password.1password"
-                    />
-                    {item.category === "LOGIN" && (
-                      <>
-                        {item?.urls?.filter((url) => url.primary).length ? (
-                          <Action.OpenInBrowser
-                            title="Open In Browser"
-                            url={(item.urls.find((url) => url.primary) as Url).href}
-                          />
-                        ) : null}
-                        <ActionPanel.Section>
-                          <CopyToClipboard
-                            id={item.id}
-                            vault_id={item.vault.id}
-                            field="username"
-                            shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
-                          />
-                          <CopyToClipboard
-                            id={item.id}
-                            vault_id={item.vault.id}
-                            field="password"
-                            shortcut={{ modifiers: ["cmd", "opt"], key: "c" }}
-                          />
-                        </ActionPanel.Section>
-                      </>
-                    )}
-                    <ActionPanel.Section>
-                      <Action title="Reset Cache" icon={Icon.Trash} onAction={() => resetCache()}></Action>
-                    </ActionPanel.Section>
-                  </ActionPanel>
-                }
+                keywords={item.additional_information ? [item.additional_information] : []}
+                actions={<ItemActionPanel account={account} item={item} actions={actionsForItem(item)} />}
               />
-            ))}
+            ))
+          : null}
       </List.Section>
     </List>
   );

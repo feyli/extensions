@@ -2,7 +2,7 @@
  * @author: tisfeng
  * @createTime: 2022-07-01 19:05
  * @lastEditor: tisfeng
- * @lastEditTime: 2023-02-28 21:44
+ * @lastEditTime: 2023-05-17 22:34
  * @fileName: versionInfo.ts
  *
  * Copyright (c) 2022 by tisfeng, All Rights Reserved.
@@ -26,26 +26,27 @@ export class Easydict {
   static repo = "Raycast-Easydict";
 
   // * NOTE: this is new version info, don't use it directly. Use getCurrentStoredVersionInfo() instead.
-  version = "2.7.3";
-  buildNumber = 22;
-  versionDate = "2023-02-28";
-  isNeedPrompt = false;
+  version = "2.10.1";
+  buildNumber = 30;
+  versionDate = "2025-01-12";
+  isNeedPrompt = true;
   hasPrompted = false; // * always default false, only show once, then should be set to true.
 
   releaseMarkdown = `
 ## [v${this.version}] - ${this.versionDate}
 
-### 💎 优化
+### 🐞 修复
 
-- 当使用 Easydict 作为 Fallback Command 时，优先使用用户输入文本作为查询词（而不是选中文本）。
+- 更新有道翻译 API，修复翻译失败的问题。
+- 限制 Bing 重试次数为 3，避免过多重试。
 
 ---
 
-### 💎 Improvement
+### 🐞 Fixed
 
-- When using Easydict as Fallback Command, use the user input text as the query word (not the selected text).
+- Update Youdao translation API, fixed the problem that the translation failed. https://github.com/tisfeng/Raycast-Easydict/pull/65
+- Limit Bing retry count to 3, avoid too many retries. https://github.com/raycast/extensions/issues/16307
 `;
-
   getRepoUrl() {
     return `${githubUrl}/${Easydict.author}/${Easydict.repo}`;
   }

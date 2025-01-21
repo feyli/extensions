@@ -39,7 +39,14 @@ export type Item = {
   created_at: string;
   updated_at: string;
   additional_information: string;
-  urls: Url[];
+  urls?: Url[];
+  fields?: Field[];
+};
+
+export type Field = {
+  id: string;
+  type: string;
+  value: string;
 };
 
 export type Vault = {

@@ -1,7 +1,8 @@
-import { open, closeMainWindow, popToRoot } from "@raycast/api";
+import { createDocFromUrl } from "./helpers/docs";
+import { withGoogleAuth } from "./components/withGoogleAuth";
 
-export default async function Command() {
-  await open("https://docs.google.com/spreadsheets/create");
-  await closeMainWindow();
-  await popToRoot();
+async function Command() {
+  await createDocFromUrl("spreadsheets");
 }
+
+export default withGoogleAuth(Command);
